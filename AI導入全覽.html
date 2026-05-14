@@ -104,6 +104,12 @@ body{font-family:"Segoe UI","Microsoft JhengHei",-apple-system,system-ui,sans-se
 .rec-item .ri-restore{background:#059669;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;font-weight:600}
 .rec-item .ri-restore:hover{background:#047857}
 .rec-empty{text-align:center;padding:20px;color:#94a3b8;font-size:12px}
+/* Zoom controls */
+.zoom-bar{position:fixed;bottom:16px;left:16px;z-index:999;display:flex;align-items:center;gap:0;background:#fff;border:1px solid #d1d5db;border-radius:22px;box-shadow:0 2px 12px rgba(0,0,0,.12);padding:2px;user-select:none}
+.zoom-bar button{width:32px;height:32px;border:none;background:none;cursor:pointer;font-size:16px;font-weight:700;color:#475569;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:background .12s}
+.zoom-bar button:hover{background:#f1f5f9}
+.zoom-bar .zoom-pct{font-size:11px;font-weight:600;color:#1e3a5f;min-width:42px;text-align:center;cursor:pointer}
+.zoom-bar .zoom-pct:hover{color:#2563eb}
 
 .bm-text::before{background:#0891b2}.bm-meet::before{background:#7c3aed}.bm-auto::before{background:#2563eb}
 .bm-rag::before{background:#dc2626}.bm-script::before{background:#d97706}.bm-bim::before{background:#059669}
@@ -438,7 +444,28 @@ var recPanelOpen=false;
 function saveStruck(){localStorage.setItem('ai-struck',JSON.stringify(struckItems))}
 function getStruckCount(){return Object.keys(struckItems).length}
 
-function render(){renderToolbar();renderSWBar();renderFlow();renderAI();renderData();renderDeliv();renderLinks();renderTimeline();renderTrends();renderL8()}
+// Zoom
+var ZOOM_STEPS=[60,70,80,90,100,110,120,130,150,175,200];
+var currentZoom=parseInt(localStorage.getItem('ai-zoom'))||100;
+function applyZoom(){
+var m=document.querySelector('.main');if(m)m.style.zoom=(currentZoom/100);
+var pct=document.getElementById('zoomPct');if(pct)pct.textContent=currentZoom+'%';
+localStorage.setItem('ai-zoom',currentZoom);
+}
+function zoomIn(){var i=ZOOM_STEPS.indexOf(currentZoom);if(i<0){for(i=0;i<ZOOM_STEPS.length;i++){if(ZOOM_STEPS[i]>currentZoom)break}currentZoom=ZOOM_STEPS[Math.min(i,ZOOM_STEPS.length-1)]}else if(i<ZOOM_STEPS.length-1){currentZoom=ZOOM_STEPS[i+1]}applyZoom()}
+function zoomOut(){var i=ZOOM_STEPS.indexOf(currentZoom);if(i<0){for(i=ZOOM_STEPS.length-1;i>=0;i--){if(ZOOM_STEPS[i]<currentZoom)break}currentZoom=ZOOM_STEPS[Math.max(i,0)]}else if(i>0){currentZoom=ZOOM_STEPS[i-1]}applyZoom()}
+function zoomReset(){currentZoom=100;applyZoom()}
+function renderZoomBar(){
+var old=document.getElementById('zoomBar');if(old)old.remove();
+var bar=mk('div','zoom-bar');bar.id='zoomBar';
+var minus=mk('button','');minus.textContent='−';minus.title='縮小';minus.onclick=zoomOut;
+var pct=mk('span','zoom-pct');pct.id='zoomPct';pct.textContent=currentZoom+'%';pct.title='重設為 100%';pct.onclick=zoomReset;
+var plus=mk('button','');plus.textContent='+';plus.title='放大';plus.onclick=zoomIn;
+bar.appendChild(minus);bar.appendChild(pct);bar.appendChild(plus);
+document.body.appendChild(bar);
+}
+
+function render(){renderToolbar();renderSWBar();renderFlow();renderAI();renderData();renderDeliv();renderLinks();renderTimeline();renderTrends();renderL8();renderZoomBar();applyZoom()}
 
 function renderToolbar(){
 var tb=document.getElementById('tb');tb.innerHTML='';

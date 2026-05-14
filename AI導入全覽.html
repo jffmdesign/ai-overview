@@ -529,4 +529,26 @@ tl.appendChild(ph);
 });
 }
 
-functi
+function renderTrends(){
+var strip=document.getElementById('trendStrip');strip.innerHTML='';
+TRENDS.forEach(function(t){
+var card=mk('div','trend-card');
+card.innerHTML='<div class="tr-year" style="color:'+t.color+'">'+t.year+'</div><h4>'+t.title+'</h4><p>'+t.text+'</p>';
+strip.appendChild(card);
+});
+}
+
+function renderL8(){
+var grid=document.getElementById('l8Grid');grid.innerHTML='';
+L8_CARDS.forEach(function(c){
+var card=mk('div','l8-card '+c.cls);
+card.innerHTML='<h4><span class="l8i">'+c.icon+'</span>'+c.title+'</h4><div class="l8-metric">'+c.metrics.map(function(m){return'<div class="l8-m"><div class="l8v" style="color:'+(c.cls==='l8-blue'?'#2563eb':c.cls==='l8-green'?'#059669':'#d97706')+'">'+m.v+'</div><div class="l8l">'+m.l+'</div></div>'}).join('')+'</div><div class="l8-note">'+c.note+'</div>';
+grid.appendChild(card);
+});
+}
+
+function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;return el}
+render();
+</script>
+</body>
+</html>

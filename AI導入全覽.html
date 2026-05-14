@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>建築師事務所｜AI 導入全覽 v3</title>
+<style>
+:root{color-scheme:light}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft JhengHei",-apple-system,system-ui,sans-serif;background:#eef1f5;color:#1a2030;line-height:1.5;height:100vh;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh}
+
+.hdr{background:linear-gradient(135deg,#1e3a5f,#2a5f8f);color:#fff;padding:14px 24px;flex-shrink:0}
+.hdr h1{font-size:19px;font-weight:800}
+.hdr h1 span{color:#7dd3fc}
+.hdr .hnote{display:inline-block;background:rgba(125,211,252,.15);border:1px solid rgba(125,211,252,.3);border-radius:6px;padding:2px 10px;font-size:11px;margin-left:8px;font-weight:400;vertical-align:middle}
+.hdr p{font-size:11.5px;opacity:.72;margin-top:2px}
+
+.tb{display:flex;gap:5px;padding:7px 16px;background:#fff;border-bottom:1px solid #d1d5db;flex-shrink:0;align-items:center;flex-wrap:wrap}
+.chip{font-size:11.5px;padding:3px 10px;border-radius:12px;border:1px solid #d1d5db;background:#f3f4f6;color:#4b5563;cursor:pointer;transition:all .12s;white-space:nowrap}
+.chip:hover{background:#e5e7eb;color:#1f2937}.chip.on{border-color:#2563eb;color:#2563eb;background:#eff6ff}
+.sep{width:1px;height:18px;background:#d1d5db;margin:0 4px}
+
+.sw-bar{display:flex;gap:4px;padding:6px 16px;background:#f8fafc;border-bottom:1px solid #e2e8f0;flex-shrink:0;align-items:center;flex-wrap:wrap}
+.sw-label{font-size:11px;font-weight:700;color:#1e3a5f;margin-right:2px;white-space:nowrap}
+.sw-grp-name{font-size:10px;color:#6b7280;font-weight:600;white-space:nowrap}
+.sw-chip{font-size:10.5px;padding:2px 7px;border-radius:10px;border:1px solid #d1d5db;background:#fff;color:#4b5563;cursor:pointer;transition:all .15s;white-space:nowrap}
+.sw-chip:hover{background:#eff6ff;border-color:#93c5fd}.sw-chip.sw-on{border-color:#2563eb;color:#fff;background:#2563eb;font-weight:600}
+.sw-chip .sw-cnt{font-size:8px;opacity:.6;margin-left:2px}
+.sw-sep{width:1px;height:14px;background:#d1d5db;margin:0 3px;flex-shrink:0}
+
+.main{flex:1;overflow-y:auto;overflow-x:hidden;padding:14px 18px 40px}
+
+.layer{margin-bottom:14px}
+.layer-hdr{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.layer-num{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;flex-shrink:0}
+.layer-hdr h2{font-size:14px;font-weight:700;color:#1e3a5f}
+.layer-hdr .layer-sub{font-size:11px;color:#6b7280;margin-left:4px}
+
+/* Flow */
+.flow-strip{display:flex;align-items:stretch;gap:0}
+.flow-phase{flex:1;min-width:0}
+.flow-card{background:#fff;border:2px solid #d1d5db;border-radius:10px;padding:8px 7px;text-align:center;height:100%;transition:all .15s;cursor:pointer}
+.flow-card:hover{border-color:#3b82f6;box-shadow:0 2px 10px rgba(59,130,246,.1)}
+.flow-card.active{border-color:#1e3a5f;background:#f8faff}
+.flow-num{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;margin:0 auto 4px}
+.flow-card h3{font-size:13px;font-weight:700;color:#1e3a5f;margin-bottom:2px}
+.flow-card .fsub{font-size:10px;color:#6b7280}
+.flow-card .fitems{text-align:left;margin-top:5px;font-size:10px;color:#4b5563;list-style:none}
+.flow-card .fitems li{padding:1px 0 1px 9px;position:relative}
+.flow-card .fitems li::before{content:'•';position:absolute;left:0;color:#9ca3af}
+.flow-arrow{width:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.flow-arrow svg{width:12px;height:12px}
+.feedback{display:flex;align-items:center;gap:6px;padding:5px 10px;font-size:10px;color:#6b7280}
+.feedback .fb-line{flex:1;border-top:1.5px dashed #94a3b8}
+.feedback .fb-text{white-space:nowrap;font-weight:600;color:#475569}
+
+/* AI cards */
+.ai-strip{display:flex;gap:5px}
+.ai-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ai-card{background:#fff;border:1px solid #e5e7eb;border-radius:7px;padding:7px 8px;font-size:10px;transition:all .15s;cursor:pointer;position:relative;overflow:hidden}
+.ai-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px}
+.ai-card:hover{border-color:#6366f1}
+/* Title = bullet list of work items */
+.ai-card .aw{font-weight:700;color:#1e293b;font-size:10.5px;line-height:1.4;margin-bottom:3px;list-style:none}
+.ai-card .aw li{padding:1px 0 1px 9px;position:relative}
+.ai-card .aw li::before{content:'•';position:absolute;left:0;color:#3b82f6;font-weight:800}
+/* Tool name (secondary) */
+.ai-card .at{color:#6b7280;font-size:9.5px;line-height:1.3;margin-bottom:4px}
+/* Tags row at bottom */
+.ai-card .tags{display:flex;flex-wrap:wrap;gap:3px;align-items:center}
+.ai-card .am{font-size:8px;font-weight:700;color:#fff;padding:1px 5px;border-radius:3px;display:inline-block}
+.ai-card .alv{font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;display:inline-block}
+.ai-card .abadge{display:inline-block;font-size:8px;background:#0f172a;color:#7dd3fc;padding:1px 4px;border-radius:3px;font-weight:600}
+.ai-card .aexcl{display:inline-block;font-size:7.5px;background:#7c3aed;color:#fff;padding:1px 4px;border-radius:3px;font-weight:600}
+.ai-card .ageneric{display:inline-block;font-size:7.5px;background:#94a3b8;color:#fff;padding:1px 4px;border-radius:3px;font-weight:600}
+/* Expand detail */
+.ai-card .ai-detail{display:none;margin-top:5px;padding-top:5px;border-top:1px dashed #e2e8f0;font-size:10px;color:#475569;line-height:1.55}
+.ai-card.expanded{background:#f8faff;border-color:#3b82f6}.ai-card.expanded .ai-detail{display:block}
+.ai-detail ol{margin:0;padding-left:16px}.ai-detail li{padding:1px 0}
+.ai-card .exh{font-size:8px;color:#94a3b8;text-align:right;margin-top:2px}
+.ai-card.sw-match{border-color:#2563eb;background:#eff6ff;box-shadow:0 2px 8px rgba(37,99,235,.12)}
+.ai-card.sw-dim{opacity:.12}
+
+.bm-text::before{background:#0891b2}.bm-meet::before{background:#7c3aed}.bm-auto::before{background:#2563eb}
+.bm-rag::before{background:#dc2626}.bm-script::before{background:#d97706}.bm-bim::before{background:#059669}
+.bm-cv::before{background:#db2777}.bm-gen::before{background:#6366f1}
+.am-text{background:#0891b2}.am-meet{background:#7c3aed}.am-auto{background:#2563eb}.am-rag{background:#dc2626}
+.am-script{background:#d97706}.am-bim{background:#059669}.am-cv{background:#db2777}.am-gen{background:#6366f1}
+.lv1{background:#dcfce7;color:#166534}.lv2{background:#dbeafe;color:#1e40af}.lv3{background:#fef3c7;color:#92400e}.lv4{background:#ede9fe;color:#5b21b6}
+
+/* Data */
+.data-strip{display:flex;gap:5px}
+.data-col{flex:1;min-width:0;background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:7px 8px}
+.data-col h4{font-size:11px;font-weight:700;color:#475569;margin-bottom:3px}
+.data-col ul{list-style:none;color:#64748b}
+.data-col li{padding:1px 0 1px 11px;position:relative;font-size:10px}
+.data-col li::before{content:'→';position:absolute;left:0;color:#94a3b8;font-size:9px}
+.db-tag{display:inline-block;font-size:8px;background:#e0e7ff;color:#3730a3;padding:1px 4px;border-radius:3px;margin:1px 1px}
+
+/* Deliv */
+.deliv-strip{display:flex;gap:5px}
+.deliv-col{flex:1;min-width:0;background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:7px 8px}
+.deliv-col h4{font-size:11px;font-weight:700;color:#1e40af;margin-bottom:3px}
+.deliv-col ul{list-style:none;color:#1e40af}
+.deliv-col li{padding:1px 0 1px 11px;position:relative;font-size:10px}
+.deliv-col li::before{content:'📄';position:absolute;left:0;font-size:8px}
+
+/* L5: Cross-phase per-column */
+.link-strip{display:flex;gap:5px}
+.link-col{flex:1;min-width:0;background:#fff;border:1px solid #e5e7eb;border-radius:7px;padding:7px 8px;font-size:10px}
+.link-col h4{font-size:10px;font-weight:700;color:#475569;margin-bottom:4px}
+.lk-out,.lk-in{margin-bottom:4px}
+.lk-out h5{font-size:9px;color:#2563eb;font-weight:700;margin-bottom:2px}.lk-in h5{font-size:9px;color:#d97706;font-weight:700;margin-bottom:2px}
+.lk-item{padding:1px 0;font-size:9.5px;color:#334155}
+.lk-item .lk-arrow-out{color:#2563eb;margin-right:2px}
+.lk-item .lk-arrow-in{color:#d97706;margin-right:2px}
+.lk-item .lk-target{font-weight:600}
+
+/* Timeline (L7) */
+.timeline{display:flex;gap:8px;position:relative}
+.timeline::before{content:'';position:absolute;top:18px;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563eb,#059669,#d97706,#7c3aed);border-radius:2px;z-index:0}
+.tl-phase{flex:1;position:relative;z-index:1}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:3px solid #fff;margin:12px auto 6px;box-shadow:0 0 0 2px}
+.tl-card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:8px;text-align:center}
+.tl-card h4{font-size:12px;font-weight:700;margin-bottom:2px}
+.tl-card .tl-time{font-size:10px;color:#6b7280;margin-bottom:4px}
+.tl-card ul{list-style:none;text-align:left;font-size:10px;color:#475569}
+.tl-card li{padding:1px 0 1px 10px;position:relative}
+.tl-card li::before{content:'✓';position:absolute;left:0;color:#16a34a;font-size:9px}
+
+/* Trends (L8) */
+.trend-strip{display:flex;gap:8px}
+.trend-card{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px;text-align:center}
+.trend-card .tr-year{font-size:20px;font-weight:800;margin-bottom:2px}
+.trend-card h4{font-size:12px;font-weight:700;color:#1e3a5f;margin-bottom:4px}
+.trend-card p{font-size:10.5px;color:#6b7280;line-height:1.4;text-align:left}
+
+/* Layer 8: Core Strategy */
+.l8-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.l8-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:12px;position:relative;overflow:hidden}
+.l8-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.l8-card.l8-blue::before{background:#2563eb}.l8-card.l8-green::before{background:#059669}.l8-card.l8-amber::before{background:#d97706}
+.l8-card h4{font-size:13px;font-weight:800;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.l8-card h4 .l8i{font-size:16px}
+.l8-metric{display:flex;gap:6px;flex-wrap:wrap}
+.l8-m{flex:1;min-width:80px;background:#f8fafc;border-radius:6px;padding:6px 8px;text-align:center}
+.l8-m .l8v{font-size:16px;font-weight:800;line-height:1}
+.l8-m .l8l{font-size:9px;color:#6b7280;margin-top:2px}
+.l8-note{font-size:10px;color:#475569;line-height:1.4;margin-top:6px;border-top:1px dashed #e2e8f0;padding-top:5px}
+
+@media(max-width:900px){.l8-grid,.trend-strip{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="hdr">
+<h1>AI 導入全覽 — 建築流程 × <span>AI 駕馭</span> × 資料 × 成果<span class="hnote">🤖 Agent 標記 = Claude 可跨軟體自動執行</span></h1>
+<p>專案生命週期出發 ｜ 8 層並行 ｜ 點擊階段聚焦 · 點擊 AI 卡片展開流程 ｜ AI 開發工具：Claude Code + Codex + Antigravity</p>
+<p style="font-size:10px;opacity:.55;margin-top:1px">💡 紫標「Claude 獨有」= Skill·Agent·MCP·Claude Code（目前 GPT/Gemini 無對等能力）｜ 灰標「通用 AI」= 基本文字/自動化（可替換）｜ Notion = 資料持久層（API 開放·免 IT·彈性高，現階段最務實選擇）</p>
+</div>
+<div class="tb" id="tb"></div>
+<div class="sw-bar" id="swBar"></div>
+<div class="main">
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#1e3a5f">1</div><h2>專案流程主線</h2><span class="layer-sub">— 點擊聚焦階段</span></div>
+<div class="flow-strip" id="flowStrip"></div>
+<div class="feedback"><span style="font-size:11px">↰</span><span class="fb-line"></span><span class="fb-text">回饋閉環：現場問題 → RFI → 設計修正 → 模型更新 → 知識沉澱</span><span class="fb-line"></span><span style="font-size:11px">↳</span></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#6366f1">2</div><h2>AI 應用層</h2><span class="layer-sub">— L1→L4 排序，點擊展開使用流程</span></div>
+<div class="ai-strip" id="aiStrip"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#0891b2">3</div><h2>資料需求與資料庫</h2><span class="layer-sub">— 每階段依賴的資料來源與資料庫系統</span></div>
+<div class="data-strip" id="dataStrip"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#2563eb">4</div><h2>AI 交付成果</h2><span class="layer-sub">— AI 輔助產出的具體文件</span></div>
+<div class="deliv-strip" id="delivStrip"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#d97706">5</div><h2>跨階段協作關聯</h2><span class="layer-sub">— 每階段「送出什麼給誰」與「從誰接收什麼」</span></div>
+<div class="link-strip" id="linkStrip"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#059669">6</div><h2>導入計畫</h2><span class="layer-sub">— 分四階段落地，由淺入深</span></div>
+<div class="timeline" id="timeline"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#7c3aed">7</div><h2>發展趨勢</h2><span class="layer-sub">— 建築 × AI 未來走向</span></div>
+<div class="trend-strip" id="trendStrip"></div></div>
+
+<div class="layer"><div class="layer-hdr"><div class="layer-num" style="background:#92400e">8</div><h2>核心策略 × 預期效益</h2><span class="layer-sub">— 三大支柱驅動轉型</span></div>
+<div class="l8-grid" id="l8Grid"></div></div>
+
+</div></div>
+
+<script>
+var PHASES=[
+{key:"biz",num:1,title:"業務契約",sub:"資訊收集與合約",color:"#6366f1",
+items:["客戶需求/業主合約","業主溝通紀錄管理","市場競品/案例研究","設計費報價試算","提案簡報製作","契約審閱/變更","專案控制表(新案建立)"],
+ai:[
+{mode:"報告撰寫",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 文件 Skill + Notion",what:"競品分析報告、服務建議書、契約風險標記、案例研究",
+ steps:["輸入業主需求書/RFP/競品資料","Claude 分析需求→標記契約風險條款","文件 Skill 產出 .docx 建議書+競品比較表","Agent 直接寫入 Notion 追蹤"]},
+{mode:"簡報製作",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 簡報 Skill",what:"提案簡報、案例分析圖表、業主溝通摘要簡報",
+ steps:["Claude 整理提案架構+案例分析","簡報 Skill 自動排版生成 .pptx","含案例照片+分析 Diagram","直接產出可用的提案簡報"]},
+{mode:"會議紀錄",mcls:"bm-meet",amcls:"am-meet",lv:"L1",agent:true,
+ tool:"Teams/錄音 + Power Automate + Claude 會議 Skill + Notion",what:"業主會議轉錄→需求追蹤→溝通紀錄管理",
+ steps:["路徑A(視訊)：Teams 轉錄→Power Automate 自動推送→Claude","路徑B(實體)：手機錄音→上傳 Claude 轉錄","會議 Skill 產出結構化紀錄+待辦","Agent 自動建立 Notion 溝通追蹤項目"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化",what:"客戶追蹤提醒、專案控制表自動更新、合約到期通知",
+ steps:["Notion CRM 追蹤客戶+專案狀態","自動化規則：逾期提醒/合約到期","專案控制表自動從範本建立","Teams 通知業務負責人"]},
+{mode:"報價試算",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Python",what:"歷史報價資料分析→自動產生費率試算與時程表",
+ steps:["Claude Code 開發報價分析工具","讀取歷史案件 DB→統計趨勢","自動產生報價試算+時程表","產出 .xlsx 報價建議"]},
+],
+data:{icon:"📥",title:"業務資料來源",items:["客戶需求文件","業主溝通紀錄","競品/案例資料","歷史報價 DB"],dbs:["client","proj","fin","kb"]},
+deliv:{title:"業務交付",items:["競品/案例分析報告","服務建議書","提案簡報(.pptx)","專案控制表","報價試算表"]},
+links:{sends:[{to:"設計",what:"需求書/合約/預算條件"},{to:"管理",what:"客戶資料→CRM 追蹤"}],receives:[{from:"管理",what:"利潤分析→報價參考"},{from:"管理",what:"業主滿意度→服務調整"}]}
+},
+{key:"design",num:2,title:"設計生產",sub:"方案→細設→出圖",color:"#2563eb",
+items:["基地環境分析","法規容積試算","量體/平面方案","細部設計圖說","設計報告書撰寫","分析圖/Diagram","顧問協調整合","出圖品質自檢"],
+ai:[
+{mode:"報告撰寫",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 文件 Skill",what:"設計說明書、基地分析報告、法規檢討報告",
+ steps:["輸入基地資料/法規/設計概念","Claude 撰寫設計說明書+分析報告","文件 Skill 自動引用法規→產出 .docx","Agent 可批次處理多案報告"]},
+{mode:"簡報/Diagram",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 簡報 Skill",what:"設計提案簡報、概念分析 Diagram、案例比較",
+ steps:["Claude 整理設計邏輯架構","生成概念 Diagram(動線/環境/配置)","簡報 Skill 排版產出 .pptx","設計審查簡報+分析圖一次到位"]},
+{mode:"顧問協調",mcls:"bm-meet",amcls:"am-meet",lv:"L1",agent:true,
+ tool:"Teams 轉錄/錄音 + Claude 會議 Skill + Notion",what:"顧問會議紀錄、協調結論追蹤、圖說確認管理",
+ steps:["視訊：Teams 轉錄→Power Automate→Claude；實體：手機錄音→Claude","會議 Skill 產出結構化紀錄+決議","顧問結論→Notion 追蹤(結構/機電/消防等)","圖說確認狀態自動更新"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化",what:"出圖 checklist、設計版本追蹤、審核流程",
+ steps:["Notion 出圖 checklist 範本","完成項目→自動更新進度","出圖截止→自動提醒","通知主管審核出圖"]},
+{mode:"RAG 法規",mcls:"bm-rag",amcls:"am-rag",lv:"L3",
+ tool:"Claude Code + LlamaIndex",what:"法規 RAG 系統：容積自動查詢、檢討表比對",
+ steps:["Claude Code 建置法規向量資料庫","設計師輸入條件→自動查詢法規","比對容積/建蔽/高度/退縮","自動產出法規檢討表"]},
+{mode:"面積材料統計",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Dynamo",what:"面積自動計算、坪效分析、門窗/材料表自動統計",
+ steps:["Claude Code 開發 Dynamo 自動化","讀取 Revit 模型→計算面積/坪效","自動生成門窗表+材料統計","匯出 .xlsx 面積計算書"]},
+{mode:"AI 設計",mcls:"bm-gen",amcls:"am-gen",lv:"L4",
+ tool:"Forma",what:"AI 日照/風場環境分析、量體方案自動生成",
+ steps:["匯入基地 3D 地形+周邊建物","AI 分析日照/風場/噪音","自動生成多組量體方案","設計師評估→匯入 Revit 深化"]},
+],
+data:{icon:"📐",title:"設計資料來源",items:["基地分析資料","法規限制查詢","設計圖說版本","面積/材料統計"],dbs:["reg","proj","bimdb","mat"]},
+deliv:{title:"設計交付",items:["設計說明書(.docx)","設計簡報(.pptx)","分析 Diagram","法規檢討表","面積計算書"]},
+links:{sends:[{to:"BIM",what:"設計圖說→建模依據"},{to:"送審",what:"法規檢討→送審文件"},{to:"監造",what:"材料規格→送審管制"}],receives:[{from:"業務",what:"需求/合約/預算"},{from:"監造",what:"RFI→設計修正"},{from:"送審",what:"補正意見→改圖"}]}
+},
+{key:"bim",num:3,title:"BIM 建模整合",sub:"資訊淨化+除錯",color:"#0d9488",
+items:["多專業 BIM 建模","碰撞檢測與整合","品質檢核(QC)","QTO 數量估算","施工圖出圖"],
+ai:[
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"ACC + Notion 自動化",what:"碰撞報告自動產出、問題追蹤逾期催辦",
+ steps:["ACC 碰撞檢測→報告匯出","自動分派到 Notion 追蹤","逾期→Teams 催辦","結案→自動更新狀態"]},
+{mode:"BIM 檢核",mcls:"bm-bim",amcls:"am-bim",lv:"L3",
+ tool:"Revit 2027 AI + Solibri",what:"自然語言 QC、規則檢核、跨專業一致性",
+ steps:["Revit AI(MCP)接受自然語言指令","Solibri 執行規則集檢核","標記違規→自動生成報告","Claude Agent 彙整檢核結果"]},
+{mode:"批次出圖與概算",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Dynamo + Notion",what:"施工圖批次出圖、QTO 數量×單價自動概算",
+ steps:["Claude Code 開發 Dynamo 批次出圖","Python QTO×單價→概算書","自動匯出 .xlsx 預算表","連結 Notion 預算追蹤"]},
+{mode:"視覺 AI",mcls:"bm-cv",amcls:"am-cv",lv:"L4",agent:true,
+ tool:"Claude Vision",what:"圖面品質自檢：標註/圖層/比例錯誤偵測",
+ steps:["匯出圖面 PDF/PNG","Claude Vision 逐張掃描","標記錯誤+修正建議","產出品質自檢報告"]},
+],
+data:{icon:"🏗️",title:"BIM 模型資料",items:["多專業整合模型","碰撞檢測結果","QTO 數量/概算","模型版本紀錄"],dbs:["bimdb","proj","mat","fin"]},
+deliv:{title:"BIM 交付",items:["碰撞檢討報告","QTO 概算書","工程預算書","施工圖","品質自檢報告"]},
+links:{sends:[{to:"送審",what:"BIM 出圖→送審文件"},{to:"監造",what:"模型/圖說→施工依據"},{to:"財務",what:"QTO→預算/請款依據"}],receives:[{from:"設計",what:"設計圖說→建模依據"},{from:"監造",what:"現場問題→模型修正"}]}
+},
+{key:"review",num:4,title:"行政送審",sub:"合規驗證",color:"#7c3aed",
+items:["建照申請/都審","補正意見回應","無障礙/綠建築","送審報告書製作","勘驗排程管理","使照圖說比對"],
+ai:[
+{mode:"補正回覆",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 文件 Skill + 送審 Skill",what:"補正回覆函、送審報告書、審查意見回應表",
+ steps:["輸入審查意見/補正通知","送審 Skill 逐條分析→擬回覆策略","文件 Skill 自動引用法規→產出 .docx","補正回覆函一次到位"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化 + Outlook",what:"勘驗排程通知、送審 checklist、用印追蹤",
+ steps:["Notion 送審 checklist+勘驗時程","截止日→Outlook 自動通知","文件清單自動勾選確認","通知主管用印進度"]},
+{mode:"RAG 法規",mcls:"bm-rag",amcls:"am-rag",lv:"L3",
+ tool:"Claude Code + LlamaIndex + Solibri",what:"法規比對、綠建築指標、無障礙檢核",
+ steps:["RAG 查詢適用法規+審查標準","Solibri 比對模型合規性","自動計算綠建築指標","產出合規檢核報告"]},
+{mode:"視覺 AI",mcls:"bm-cv",amcls:"am-cv",lv:"L4",agent:true,
+ tool:"Claude Vision",what:"使照圖說比對：建照圖 vs 竣工圖差異標記",
+ steps:["輸入建照圖+竣工圖","Claude Vision 逐頁比對","標記差異→判斷是否需變更","產出差異比對報告"]},
+],
+data:{icon:"📋",title:"審查資料來源",items:["送審文件包","補正/審查意見","法規合規資料","勘驗/使照資料"],dbs:["reg","doc","proj","insp"]},
+deliv:{title:"送審交付",items:["送審文件清單","補正回覆函(.docx)","合規檢核報告","綠建築指標表","送審簡報"]},
+links:{sends:[{to:"監造",what:"核准圖說→施工依據"},{to:"管理",what:"送審進度→專案追蹤"}],receives:[{from:"設計",what:"法規檢討→送審文件"},{from:"BIM",what:"BIM 出圖→送審圖說"}]}
+},
+{key:"construct",num:5,title:"監造工務",sub:"現場執行+回饋",color:"#059669",
+items:["工地巡查拍照","RFI 來文處理","施工品質查核","材料送審管制","變更設計管理","監造日誌撰寫","業主現場會議","顧問現場配合確認"],
+ai:[
+{mode:"日誌/RFI回文",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 文件 Skill + RFI Skill + Notion",what:"監造日誌自動撰寫、RFI 回文、變更說明、業主/顧問會議紀錄",
+ steps:["輸入工地照片+巡查紀錄","文件 Skill 生成監造日誌 .docx","RFI Skill 分析來文→擬回覆方向","Agent 寫入 Notion+通知相關人"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化 + Teams + LINE",what:"來文分類登記、催辦通知、材料送審追蹤",
+ steps:["營造廠來文→自動登記 Notion","AI 分類：RFI/送審/變更","逾期→Teams+LINE 催辦","材料送審狀態自動更新"]},
+{mode:"RAG 搜尋",mcls:"bm-rag",amcls:"am-rag",lv:"L3",
+ tool:"Claude Code + LlamaIndex",what:"歷史 RFI 案例搜尋→初步研判參考",
+ steps:["Claude Code 建置 RFI 向量庫","新 RFI→語意搜尋相似案例","提供歷史回覆方向+注意事項","縮短 PM 研判時間 50%+"]},
+{mode:"變更費用估算",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Python + Notion",what:"設計變更自動比對數量差異、費用增減估算",
+ steps:["讀取 BIM 變更前後差異","Python 計算數量/費用增減","生成變更費用估算表","匯入 Notion 變更追蹤"]},
+{mode:"視覺 AI",mcls:"bm-cv",amcls:"am-cv",lv:"L4",agent:true,
+ tool:"Claude Vision",what:"現場照片品質查核、缺失比對、施工進度影像紀錄",
+ steps:["上傳現場巡查照片","Claude Vision 比對施工規範","標記缺失+建議改善方式","產出視覺化巡查報告"]},
+],
+data:{icon:"🔧",title:"現場資料來源",items:["巡查照片/影像","RFI/來文紀錄","品質查核紀錄","材料送審/變更"],dbs:["rfi","proj","bimdb","insp","mat"]},
+deliv:{title:"監造交付",items:["AI 監造日誌","RFI 回覆函","品質趨勢報告","變更費用估算表","現場品質查核報告"]},
+links:{sends:[{to:"設計",what:"RFI/問題→設計修正(回饋)"},{to:"BIM",what:"現場問題→模型修正"},{to:"管理",what:"監造日誌→週報彙整"}],receives:[{from:"設計",what:"材料規格→送審管制"},{from:"BIM",what:"施工圖→施工依據"},{from:"送審",what:"核准圖說→施工依據"}]}
+},
+{key:"mgmt",num:6,title:"管理/文件/財務",sub:"控制+追蹤+知識",color:"#ea580c",
+items:["專案控制表(持續更新追蹤)","業主會議/溝通追蹤","會議紀錄/決議","週報/風險預警","文件版控/歸檔","知識庫建置","帳款/請款管理"],
+ai:[
+{mode:"會議紀錄",mcls:"bm-meet",amcls:"am-meet",lv:"L1",agent:true,
+ tool:"Teams/錄音 + Power Automate + Claude 會議 Skill + Notion",what:"會議轉錄→決議待辦自動追蹤、業主溝通紀錄",
+ steps:["路徑A(視訊)：Teams 轉錄→Power Automate 自動推送→Claude","路徑B(實體)：手機錄音→上傳 Claude 轉錄","會議 Skill 產出結構化紀錄+待辦+指派","Agent 寫入 Notion→業主溝通歷程自動歸檔"]},
+{mode:"週報/風險報告",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 週報 Skill + 文件 Skill + Notion",what:"週報自動彙整、專案控制表更新、風險摘要報告",
+ steps:["Agent 讀取 Notion 各案進度","週報 Skill 彙整+紅黃綠燈+風險標記","文件 Skill 產出 .docx 週報","自動通知主管審閱"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化 + Outlook/LINE",what:"里程碑追蹤、催辦、請款催款、帳款追蹤",
+ steps:["Notion 管理全案里程碑","逾期/即將到期→自動催辦","請款條件達成→通知","帳款未收→LINE/Outlook 催款"]},
+{mode:"營運數據分析",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Python + Notion",what:"利潤率分析、工時統計、成本趨勢、風險預測",
+ steps:["Claude Code 開發營運分析工具","串接 Notion API 取專案數據","分析利潤/工時/成本趨勢","產出管理報表 .xlsx"]},
+{mode:"RAG 知識庫",mcls:"bm-rag",amcls:"am-rag",lv:"L3",agent:true,
+ tool:"Claude Agent + LlamaIndex",what:"事務所知識庫：法規/案例/RFI 經驗查詢",
+ steps:["Claude Code 建置向量知識庫","同仁提問→語意搜尋","Claude 整合結果生成回答","知識持續沉澱累積"]},
+],
+data:{icon:"📊",title:"管理資料來源",items:["專案控制表","會議紀錄/決議","帳款/工時紀錄","文件版本/知識庫"],dbs:["proj","mtg","fin","hr","kb","doc","client"]},
+deliv:{title:"管理交付",items:["專案控制表","自動會議紀錄","週報+紅黃綠燈","風險預警通知","知識庫系統","帳款追蹤報表"]},
+links:{sends:[{to:"業務",what:"利潤分析→報價參考"},{to:"全階段",what:"會議決議→各案待辦"}],receives:[{from:"監造",what:"日誌→週報彙整"},{from:"全階段",what:"各階段進度→控制表"}]}
+},
+{key:"close",num:7,title:"結案與保固",sub:"持續改進",color:"#92400e",
+items:["竣工查驗/缺失","竣工圖說整理","結案檢討報告","結案簡報製作","尾款結算","保固追蹤移交"],
+ai:[
+{mode:"結案報告/簡報",mcls:"bm-text",amcls:"am-text",lv:"L1",agent:true,
+ tool:"Claude + 文件 Skill + 簡報 Skill + Notion",what:"結案檢討報告、結案簡報、經驗教訓萃取",
+ steps:["Agent 讀取專案全程 Notion 資料","彙整時程/預算/變更/問題統計","文件 Skill 產出 .docx 結案報告","簡報 Skill 產出 .pptx 結案簡報"]},
+{mode:"自動化",mcls:"bm-auto",amcls:"am-auto",lv:"L2",
+ tool:"Notion 自動化",what:"缺失追蹤、保固期提醒、文件自動歸檔",
+ steps:["缺失清單 Notion 追蹤→逐項銷案","保固到期→提前通知","竣工文件自動歸檔+命名","移交清單自動確認"]},
+{mode:"竣工出圖與結算",mcls:"bm-script",amcls:"am-script",lv:"L3",
+ tool:"Claude Code + Dynamo + Notion",what:"竣工圖批次出圖、尾款結算自動計算",
+ steps:["Dynamo 批次產出竣工圖","Python 計算尾款結算","生成結算明細表","匯入 Notion 財務紀錄"]},
+],
+data:{icon:"📦",title:"結案資料來源",items:["竣工模型/圖說","缺失改善紀錄","經驗教訓彙整","保固期間紀錄"],dbs:["proj","bimdb","doc","kb","fin"]},
+deliv:{title:"結案交付",items:["竣工圖說包","結案報告(.docx)","結案簡報(.pptx)","結算計算表","保固移交清單"]},
+links:{sends:[{to:"管理/知識庫",what:"經驗教訓→知識沉澱"}],receives:[{from:"監造",what:"竣工資料→結案整理"},{from:"BIM",what:"最終模型→竣工圖"}]}
+},
+];
+
+var DB_NAMES={proj:"專案DB",client:"客戶DB",fin:"財務DB",reg:"法規DB",bimdb:"BIM模型DB",mat:"材料DB",doc:"文件DB",rfi:"RFI DB",mtg:"會議DB",hr:"人資DB",kb:"知識庫",insp:"勘驗DB"};
+
+var TIMELINE=[
+{phase:"Phase 1",time:"起步期",title:"L1 全員啟動",color:"#2563eb",
+ items:["部署 Claude Agent 全員使用","啟用 Teams 會議轉錄","Notion AI 會議寫手上線","基礎 AI 提示工程培訓","建立提案簡報/報告 SOP"]},
+{phase:"Phase 2",time:"流程期",title:"L2 自動化流程",color:"#059669",
+ items:["Notion 專案範本標準化","建立自動化規則(提醒/催辦)","專案控制表+週報自動化","送審/來文 checklist 流程"]},
+{phase:"Phase 3",time:"開發期",title:"L3 開發與知識庫",color:"#d97706",
+ items:["Claude Code 開發 Dynamo 自動化","建置法規 RAG 知識庫","建置 RFI 歷史案例庫","Python 報價/利潤分析工具","Codex/Antigravity 輔助開發"]},
+{phase:"Phase 4",time:"整合期",title:"L4 專業 AI 整合",color:"#7c3aed",
+ items:["Forma 環境分析導入","Solibri + Revit AI 品質檢核","Claude Vision 圖面/現場比對","全流程 Agent 自動化串接"]},
+];
+
+var TRENDS=[
+{year:"2026",title:"Agent 元年",color:"#2563eb",
+ text:"Claude Agent 透過 MCP 直接操作 Notion/Revit/ACC 等軟體，取代大部分手動「複製貼上」工作。AI 開發工具(Claude Code/Codex/Antigravity)讓非工程師也能建置自動化腳本。"},
+{year:"2027",title:"BIM × AI 原生整合",color:"#059669",
+ text:"Revit/ArchiCAD 原生 AI 功能成熟：自然語言建模指令、即時法規檢核、自動碰撞修正建議。RAG 知識庫成為事務所核心資產，新人透過 AI 快速上手。"},
+{year:"2028",title:"自主式 AI 助手",color:"#7c3aed",
+ text:"AI PM 自動處理例行工作：日誌撰寫、進度追蹤、催辦通知、週報彙整全自動。設計師專注創意決策，AI 處理所有行政與重複性工作。Generative Design 進入實用階段。"},
+];
+
+var L8_CARDS=[
+{cls:"l8-blue",icon:"🤖",title:"AI 即戰力",
+ metrics:[{v:"L1",l:"全員即用"},{v:"Skill",l:"專業強化"},{v:"Agent",l:"跨軟體串連"}],
+ note:"所有人第一天就能用 Claude 產出報告/簡報/會議紀錄，Skill 確保專業品質，Agent 透過 MCP 自動操作 Notion·Revit·ACC 等軟體"},
+{cls:"l8-green",icon:"📊",title:"Notion 管理中台",
+ metrics:[{v:"1",l:"單一真實來源"},{v:"12+",l:"資料庫"},{v:"∞",l:"自動化規則"}],
+ note:"所有專案·會議·文件·帳款集中 Notion 管理，AI 讀取 Notion 數據做分析，Notion 自動化處理催辦·提醒·流程，形成閉環"},
+{cls:"l8-amber",icon:"🛠️",title:"自主開發能力",
+ metrics:[{v:"3",l:"AI 開發工具"},{v:"RAG",l:"知識庫"},{v:"L3-L4",l:"進階應用"}],
+ note:"Claude Code + Codex + Antigravity 三大工具讓事務所自行開發 Dynamo 自動化·報價試算·法規 RAG 等進階工具，不依賴外部廠商"},
+];
+
+// Software groups
+var SW_GROUPS=[
+{name:"核心 AI",items:[
+ {name:"Claude",rx:/Claude/i},{name:"Notion",rx:/Notion/i},{name:"Teams",rx:/Teams/i},{name:"Outlook",rx:/Outlook/i},{name:"LINE",rx:/\bLINE\b/},{name:"Power Automate",rx:/Power Automate/i},
+]},
+{name:"AI 開發",items:[
+ {name:"Claude Code",rx:/Claude Code/i},{name:"Codex",rx:/Codex/i},{name:"Antigravity",rx:/Antigravity/i},
+]},
+{name:"Skill",items:[
+ {name:"文件 Skill",rx:/文件 Skill/i},{name:"簡報 Skill",rx:/簡報 Skill/i},{name:"會議 Skill",rx:/會議 Skill/i},{name:"週報 Skill",rx:/週報 Skill/i},{name:"RFI Skill",rx:/RFI Skill/i},{name:"送審 Skill",rx:/送審 Skill/i},
+]},
+{name:"設計",items:[
+ {name:"Revit AI",rx:/Revit/i},{name:"Dynamo",rx:/Dynamo/i},{name:"Forma",rx:/Forma/i},
+]},
+{name:"BIM",items:[
+ {name:"Solibri",rx:/Solibri/i},{name:"ACC",rx:/\bACC\b/},
+]},
+{name:"專業",items:[
+ {name:"Python",rx:/Python/i},{name:"LlamaIndex",rx:/LlamaIndex/i},
+]},
+];
+SW_GROUPS.forEach(function(g){g.items.forEach(function(s){
+ var c=0;PHASES.forEach(function(p){p.ai.forEach(function(ai){if(s.rx.test(ai.tool))c++})});s.count=c;
+})});
+
+var activePhase=null,activeSoftware=null,activeSWRx=null,expandedCards={};
+
+function render(){renderToolbar();renderSWBar();renderFlow();renderAI();renderData();renderDeliv();renderLinks();renderTimeline();renderTrends();renderL8()}
+
+function renderToolbar(){
+var tb=document.getElementById('tb');tb.innerHTML='';
+var all=mk('span','chip'+(activePhase===null?' on':''));all.textContent='全部階段';
+all.onclick=function(){activePhase=null;render()};tb.appendChild(all);
+PHASES.forEach(function(p){
+var c=mk('span','chip'+(activePhase===p.key?' on':''));
+c.innerHTML='<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+p.color+';margin-right:3px;vertical-align:middle"></span>'+p.title;
+c.onclick=function(){activePhase=activePhase===p.key?null:p.key;render()};tb.appendChild(c);
+});
+tb.appendChild(mk('span','sep'));
+[{n:"報告/簡報",c:"#0891b2"},{n:"會議紀錄",c:"#7c3aed"},{n:"自動化",c:"#2563eb"},{n:"RAG搜尋",c:"#dc2626"},{n:"自動計算",c:"#d97706"},{n:"BIM檢核",c:"#059669"},{n:"視覺AI",c:"#db2777"},{n:"AI設計",c:"#6366f1"}].forEach(function(m){
+var s=mk('span','chip');s.style.cssText='font-size:10px;padding:2px 7px';
+s.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:2px;background:'+m.c+';margin-right:3px;vertical-align:middle"></span>'+m.n;tb.appendChild(s);
+});
+}
+
+function renderSWBar(){
+var bar=document.getElementById('swBar');bar.innerHTML='';
+var lbl=mk('span','sw-label');lbl.textContent='🔍 軟體：';bar.appendChild(lbl);
+var allc=mk('span','sw-chip'+(activeSoftware===null?' sw-on':''));allc.textContent='全部';
+allc.onclick=function(){activeSoftware=null;activeSWRx=null;render()};bar.appendChild(allc);
+SW_GROUPS.forEach(function(g,gi){
+if(gi>0)bar.appendChild(mk('span','sw-sep'));
+var gn=mk('span','sw-grp-name');gn.textContent=g.name+'：';bar.appendChild(gn);
+g.items.forEach(function(s){
+if(s.count===0)return;
+var c=mk('span','sw-chip'+(activeSoftware===s.name?' sw-on':''));
+c.innerHTML=s.name+'<span class="sw-cnt">('+s.count+')</span>';
+c.onclick=function(){if(activeSoftware===s.name){activeSoftware=null;activeSWRx=null}else{activeSoftware=s.name;activeSWRx=s.rx}render()};
+bar.appendChild(c);
+});
+});
+}
+
+function renderFlow(){
+var strip=document.getElementById('flowStrip');strip.innerHTML='';
+PHASES.forEach(function(p,i){
+if(i>0){var arr=mk('div','flow-arrow');arr.innerHTML='<svg viewBox="0 0 16 16"><path d="M3 8h8M8 4l4 4-4 4" stroke="'+p.color+'" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';strip.appendChild(arr)}
+var ph=mk('div','flow-phase');var card=mk('div','flow-card'+(activePhase===p.key?' active':''));
+if(activePhase&&activePhase!==p.key)card.style.opacity='.3';
+card.innerHTML='<div class="flow-num" style="background:'+p.color+'">'+p.num+'</div><h3>'+p.title+'</h3><div class="fsub">'+p.sub+'</div><ul class="fitems">'+p.items.map(function(it){return'<li>'+it+'</li>'}).join('')+'</ul>';
+card.onclick=function(){activePhase=activePhase===p.key?null:p.key;render()};ph.appendChild(card);strip.appendChild(ph);
+});
+}
+
+function renderAI(){
+var strip=document.getElementById('aiStrip');strip.innerHTML='';
+PHASES.forEach(function(p){
+var col=mk('div','ai-col');if(activePhase&&activePhase!==p.key)col.style.opacity='.15';
+var sorted=p.ai.slice().sort(function(a,b){return(parseInt(a.lv.replace(/\D/g,''))||0)-(parseInt(b.lv.replace(/\D/g,''))||0)});
+sorted.forEach(function(ai,idx){
+var isMatch=activeSWRx?activeSWRx.test(ai.tool):false;
+var swCls=activeSoftware?(isMatch?' sw-match':' sw-dim'):'';
+var eid=p.key+'-'+idx;var isExp=expandedCards[eid];
+var card=mk('div','ai-card '+ai.mcls+swCls+(isExp?' expanded':''));
+var lvCls=ai.lv.indexOf('L1')>=0?'lv1':ai.lv.indexOf('L2')>=0?'lv2':ai.lv.indexOf('L3')>=0?'lv3':'lv4';
+var agentH=ai.agent?'<span class="abadge">🤖 Agent</span>':'';
+var exclH=(/Skill|Claude Code|LlamaIndex|Claude Vision|Claude Agent/i.test(ai.tool)||ai.agent)?'<span class="aexcl">Claude 獨有</span>':'<span class="ageneric">通用 AI</span>';
+var detH='';if(ai.steps)detH='<div class="ai-detail"><ol>'+ai.steps.map(function(s){return'<li>'+s+'</li>'}).join('')+'</ol></div>';
+card.innerHTML='<ul class="aw">'+ai.what.split('、').map(function(w){return'<li>'+w.trim()+'</li>'}).join('')+'</ul><div class="at">🔧 '+ai.tool+'</div><div class="tags"><span class="am '+ai.amcls+'">'+ai.mode+'</span><span class="alv '+lvCls+'">'+ai.lv+'</span>'+agentH+exclH+'</div>'+detH+'<div class="exh">'+(isExp?'▲ 收合':'▼ 展開')+'</div>';
+card.onclick=function(e){e.stopPropagation();expandedCards[eid]=!expandedCards[eid];renderAI()};
+col.appendChild(card);
+});strip.appendChild(col);
+});
+}
+
+function renderData(){
+var strip=document.getElementById('dataStrip');strip.innerHTML='';
+PHASES.forEach(function(p){
+var col=mk('div','data-col');if(activePhase&&activePhase!==p.key)col.style.opacity='.15';
+var dbH=p.data.dbs?'<div style="margin-top:3px">'+p.data.dbs.map(function(d){return'<span class="db-tag">'+(DB_NAMES[d]||d)+'</span>'}).join('')+'</div>':'';
+col.innerHTML='<h4>'+p.data.icon+' '+p.data.title+'</h4><ul>'+p.data.items.map(function(it){return'<li>'+it+'</li>'}).join('')+'</ul>'+dbH;
+strip.appendChild(col);
+});
+}
+
+function renderDeliv(){
+var strip=document.getElementById('delivStrip');strip.innerHTML='';
+PHASES.forEach(function(p){
+var col=mk('div','deliv-col');if(activePhase&&activePhase!==p.key)col.style.opacity='.15';
+col.innerHTML='<h4>'+p.deliv.title+'</h4><ul>'+p.deliv.items.map(function(it){return'<li>'+it+'</li>'}).join('')+'</ul>';
+strip.appendChild(col);
+});
+}
+
+function renderLinks(){
+var strip=document.getElementById('linkStrip');strip.innerHTML='';
+PHASES.forEach(function(p){
+var col=mk('div','link-col');if(activePhase&&activePhase!==p.key)col.style.opacity='.15';
+var h='<h4 style="color:'+p.color+'">'+p.title+'</h4>';
+var outH='',inH='';
+if(p.links.sends.length){outH='<div class="lk-out"><h5>📤 送出</h5>'+p.links.sends.map(function(l){return'<div class="lk-item"><span class="lk-arrow-out">→</span><span class="lk-target">'+l.to+'</span>：'+l.what+'</div>'}).join('')+'</div>'}
+if(p.links.receives.length){inH='<div class="lk-in"><h5>📥 接收</h5>'+p.links.receives.map(function(l){return'<div class="lk-item"><span class="lk-arrow-in">←</span><span class="lk-target">'+l.from+'</span>：'+l.what+'</div>'}).join('')+'</div>'}
+col.innerHTML=h+outH+inH;
+strip.appendChild(col);
+});
+}
+
+function renderTimeline(){
+var tl=document.getElementById('timeline');tl.innerHTML='';
+TIMELINE.forEach(function(t){
+var ph=mk('div','tl-phase');
+ph.innerHTML='<div class="tl-dot" style="background:'+t.color+';box-shadow:0 0 0 2px '+t.color+'"></div><div class="tl-card"><div class="tl-time">'+t.time+'</div><h4 style="color:'+t.color+'">'+t.title+'</h4><ul>'+t.items.map(function(it){return'<li>'+it+'</li>'}).join('')+'</ul></div>';
+tl.appendChild(ph);
+});
+}
+
+function renderTrends(){
+var strip=document.getElementById('trendStrip');strip.innerHTML='';
+TRENDS.forEach(function(t){
+var card=mk('div','trend-card');
+card.innerHTML='<div class="tr-year" style="color:'+t.color+'">'+t.year+'</div><h4>'+t.title+'</h4><p>'+t.text+'</p>';
+strip.appendChild(card);
+});
+}
+
+function renderL8(){
+var grid=document.getElementById('l8Grid');grid.innerHTML='';
+L8_CARDS.forEach(function(c){
+var card=mk('div','l8-card '+c.cls);
+card.innerHTML='<h4><span class="l8i">'+c.icon+'</span>'+c.title+'</h4><div class="l8-metric">'+c.metrics.map(function(m){return'<div class="l8-m"><div class="l8v" style="color:'+(c.cls==='l8-blue'?'#2563eb':c.cls==='l8-green'?'#059669':'#d97706')+'">'+m.v+'</div><div class="l8l">'+m.l+'</div></div>'}).join('')+'</div><div class="l8-note">'+c.note+'</div>';
+grid.appendChild(card);
+});
+}
+
+function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;return el}
+render();
+</script>
+</body>
+</html>

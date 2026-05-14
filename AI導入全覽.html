@@ -81,6 +81,8 @@ body{font-family:"Segoe UI","Microsoft JhengHei",-apple-system,system-ui,sans-se
 .ai-card .exh{font-size:8px;color:#94a3b8;text-align:right;margin-top:2px}
 .ai-card.sw-match{border-color:#2563eb;background:#eff6ff;box-shadow:0 2px 8px rgba(37,99,235,.12)}
 .ai-card.sw-dim{opacity:.12}
+.ai-card.lv-match{border-color:#6366f1;background:#f5f3ff;box-shadow:0 2px 8px rgba(99,102,241,.15)}
+.ai-card.lv-dim{opacity:.12}
 
 .bm-text::before{background:#0891b2}.bm-meet::before{background:#7c3aed}.bm-auto::before{background:#2563eb}
 .bm-rag::before{background:#dc2626}.bm-script::before{background:#d97706}.bm-bim::before{background:#059669}
@@ -408,7 +410,7 @@ SW_GROUPS.forEach(function(g){g.items.forEach(function(s){
  var c=0;PHASES.forEach(function(p){p.ai.forEach(function(ai){if(s.rx.test(ai.tool))c++})});s.count=c;
 })});
 
-var activePhase=null,activeSoftware=null,activeSWRx=null,expandedCards={};
+var activePhase=null,activeSoftware=null,activeSWRx=null,activeLevel=null,expandedCards={};
 
 function render(){renderToolbar();renderSWBar();renderFlow();renderAI();renderData();renderDeliv();renderLinks();renderTimeline();renderTrends();renderL8()}
 
@@ -425,6 +427,12 @@ tb.appendChild(mk('span','sep'));
 [{n:"報告/簡報",c:"#0891b2"},{n:"會議紀錄",c:"#7c3aed"},{n:"自動化",c:"#2563eb"},{n:"RAG搜尋",c:"#dc2626"},{n:"自動計算",c:"#d97706"},{n:"BIM檢核",c:"#059669"},{n:"視覺AI",c:"#db2777"},{n:"AI設計",c:"#6366f1"}].forEach(function(m){
 var s=mk('span','chip');s.style.cssText='font-size:10px;padding:2px 7px';
 s.innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:2px;background:'+m.c+';margin-right:3px;vertical-align:middle"></span>'+m.n;tb.appendChild(s);
+});
+tb.appendChild(mk('span','sep'));
+[{lv:"L1",bg:"#dcfce7",fg:"#166534",label:"L1 全員即用"},{lv:"L2",bg:"#dbeafe",fg:"#1e40af",label:"L2 No-Code"},{lv:"L3",bg:"#fef3c7",fg:"#92400e",label:"L3 開發"},{lv:"L4",bg:"#ede9fe",fg:"#5b21b6",label:"L4 專業AI"}].forEach(function(l){
+var s=mk('span','chip'+(activeLevel===l.lv?' on':''));s.style.cssText='font-size:10.5px;padding:3px 8px;background:'+(activeLevel===l.lv?l.bg:'#f3f4f6')+';color:'+(activeLevel===l.lv?l.fg:'#4b5563')+';border-color:'+(activeLevel===l.lv?l.fg:'#d1d5db')+';font-weight:'+(activeLevel===l.lv?'700':'400');
+s.textContent=l.label;
+s.onclick=function(){activeLevel=activeLevel===l.lv?null:l.lv;render()};tb.appendChild(s);
 });
 }
 
@@ -465,8 +473,10 @@ var sorted=p.ai.slice().sort(function(a,b){return(parseInt(a.lv.replace(/\D/g,''
 sorted.forEach(function(ai,idx){
 var isMatch=activeSWRx?activeSWRx.test(ai.tool):false;
 var swCls=activeSoftware?(isMatch?' sw-match':' sw-dim'):'';
+var lvMatch=activeLevel?ai.lv===activeLevel:false;
+var lvCls2=activeLevel?(lvMatch?' lv-match':' lv-dim'):'';
 var eid=p.key+'-'+idx;var isExp=expandedCards[eid];
-var card=mk('div','ai-card '+ai.mcls+swCls+(isExp?' expanded':''));
+var card=mk('div','ai-card '+ai.mcls+swCls+lvCls2+(isExp?' expanded':''));
 var lvCls=ai.lv.indexOf('L1')>=0?'lv1':ai.lv.indexOf('L2')>=0?'lv2':ai.lv.indexOf('L3')>=0?'lv3':'lv4';
 var agentH=ai.agent?'<span class="abadge">🤖 Agent</span>':'';
 var exclH=(/Skill|Claude Code|LlamaIndex|Claude Vision|Claude Agent/i.test(ai.tool)||ai.agent)?'<span class="aexcl">Claude 獨有</span>':'<span class="ageneric">通用 AI</span>';
@@ -519,26 +529,4 @@ tl.appendChild(ph);
 });
 }
 
-function renderTrends(){
-var strip=document.getElementById('trendStrip');strip.innerHTML='';
-TRENDS.forEach(function(t){
-var card=mk('div','trend-card');
-card.innerHTML='<div class="tr-year" style="color:'+t.color+'">'+t.year+'</div><h4>'+t.title+'</h4><p>'+t.text+'</p>';
-strip.appendChild(card);
-});
-}
-
-function renderL8(){
-var grid=document.getElementById('l8Grid');grid.innerHTML='';
-L8_CARDS.forEach(function(c){
-var card=mk('div','l8-card '+c.cls);
-card.innerHTML='<h4><span class="l8i">'+c.icon+'</span>'+c.title+'</h4><div class="l8-metric">'+c.metrics.map(function(m){return'<div class="l8-m"><div class="l8v" style="color:'+(c.cls==='l8-blue'?'#2563eb':c.cls==='l8-green'?'#059669':'#d97706')+'">'+m.v+'</div><div class="l8l">'+m.l+'</div></div>'}).join('')+'</div><div class="l8-note">'+c.note+'</div>';
-grid.appendChild(card);
-});
-}
-
-function mk(tag,cls){var el=document.createElement(tag);if(cls)el.className=cls;return el}
-render();
-</script>
-</body>
-</html>
+functi
